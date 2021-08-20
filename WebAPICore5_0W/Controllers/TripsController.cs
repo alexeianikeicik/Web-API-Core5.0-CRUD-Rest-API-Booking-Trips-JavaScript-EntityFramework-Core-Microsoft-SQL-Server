@@ -22,9 +22,23 @@ namespace WebAPICore5_0W.Controllers
 
         // GET: api/Trips
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Trip>>> GetTrips()
+        public async Task<IEnumerable<Trip>> GetTrips(string startLocation, string finishLocation)
         {
-            return await _context.Trips.ToListAsync();
+            IEnumerable<Trip> TripsList = await _context.Trips.ToListAsync();
+
+            if (!String.IsNullOrEmpty(startLocation) && !String.IsNullOrEmpty(finishLocation))
+            {
+                TripsList = await _context.Trips.Where(p => p.StartLocation.Contains(startLocation))
+                                                .Where(p => p.FinishLocation.Contains(finishLocation))
+                                                .ToListAsync();
+            }else if (!String.IsNullOrEmpty(startLocation))
+            {
+                TripsList = await _context.Trips.Where(p => p.StartLocation.Contains(startLocation)).ToListAsync();
+            }else if(!String.IsNullOrEmpty(finishLocation))
+            {
+                TripsList = await _context.Trips.Where(p => p.FinishLocation.Contains(finishLocation)).ToListAsync();
+            }
+            return TripsList;
         }
 
         // GET: api/Trips/5

@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width" />
     <title>Список поездок</title>
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.0/css/bootstrap.min.css" rel="stylesheet" />
+    <link type="text/css" rel="stylesheet" href="SiteStyleSheet.css" />
 </head>
 <body>
     <a href="indexOrders.html">Список забронированных поездок</a>
@@ -24,27 +25,38 @@
         </div>
         <div class="form-group col-md-5">
             <label for="ordered">Статус бронирования:</label>
-            <input class="form-control" id="ordered" type="checkbox"/>
+            <input class="form-control" id="ordered" type="checkbox" />
         </div>
-
-
         <div class="panel-body">
             <button type="submit" id="submit" class="btn btn-primary">Сохранить</button>
-            <button type="button" a id="resetbutton" class="btn btn-primary">Сбросить</button>
+            <button type="button" id="resetbutton" class="btn btn-primary">Сбросить</button>
+        </div>
+    </form>
+    <form name="filterForm">
+        <div class="lines">
+            <div class="panel-body">
+                <div class="form-group form-inline">
+                    <label for="startLocation">Стартовая локация: </label>
+                    <input class="form-control" name="startLocation" />
+                    <label for="finishLocation">Финишная локация: </label>
+                    <input class="form-control" name="finishLocation" />
+                    <input type="submit" value="Применить фильтр" class="btn btn-outline-dark" />
+                </div>
+            </div>
         </div>
     </form>
     <h2>Список поездок</h2>
     <table class="table table-condensed table-striped  col-md-6">
-        <thead><tr><th>Id</th><th>Стартовая локация</th><th>Финишная локация</th><th>Цена</th><th>Статус бронирования</th><th></th></tr></thead>
-        <tbody>
+        <thead><tr><th>Id</th><th>Стартовая локация</th><th>Финишная локация</th><th>Цена</th><th></th></tr></thead>
+        <tbody id="tableTripstbody">
         </tbody>
     </table>
 
     <script>
         // Получение всех поездок
-        async function GetTrips() {
+        async function GetTrips(startLocation = "", finishLocation = "") {
             // отправляет запрос и получаем ответ
-            const response = await fetch("/api/trips", {
+            const response = await fetch("/api/trips?startLocation=" + startLocation + "&finishLocation=" + finishLocation, {
                 method: "GET",
                 headers: { "Accept": "application/json" }
             });
@@ -88,7 +100,7 @@
                     Ordered: tripOrdered
                 })
             });
-            
+
             if (response.ok === true) {
                 const trip = await response.json();
                 reset();
@@ -97,7 +109,7 @@
         }
         // Изменение поездки
         async function EditTrip(tripId, tripStartLocation, tripFinishLocation, tripPrice, tripOrdered) {
-            
+
             const response = await fetch("api/trips/" + tripId, {
                 method: "PUT",
                 headers: { "Accept": "application/json", "Content-Type": "application/json" },
@@ -110,7 +122,7 @@
 
                 })
             });
-            
+
             if (response.ok === true) {
                 const trip = await response.json();
                 reset();
@@ -119,7 +131,7 @@
         }
         // Удаление поездки
         async function DeleteTrip(id) {
-            
+
             const response = await fetch("/api/trips/" + id, {
                 method: "DELETE",
                 headers: { "Accept": "application/json" }
@@ -158,10 +170,6 @@
             PriceTd.append(trip.price);
             tr.append(PriceTd);
 
-            const OrderedTd = document.createElement("td");
-            OrderedTd.append(trip.ordered);
-            tr.append(OrderedTd);
-
             const linksTd = document.createElement("td");
 
             const editLink = document.createElement("a");
@@ -189,6 +197,7 @@
 
             return tr;
         }
+
         // сброс значений формы
         //document.getElementById("resetbutton").click(function (e) {
         //e.preventDefault();
@@ -208,12 +217,23 @@
             const finishLocation = form.elements["finish_location"].value;
             const price = form.elements["price"].value;
             const ordered = form.elements["ordered"].checked;
-           
+
             if (id == 0)
                 CreateTrip(startLocation, finishLocation, price, ordered);
             else {
                 if (id != -1) EditTrip(id, startLocation, finishLocation, price, ordered);
             }
+        });
+
+        
+        // отправка формы
+        document.forms["filterForm"].addEventListener("submit", e => {
+            e.preventDefault();
+            const form = document.forms["filterForm"];
+            const startLocation = form.elements["startLocation"].value;
+            const finishLocation = form.elements["finishLocation"].value;
+            document.getElementById("tableTripstbody").innerHTML = "";
+            GetTrips(startLocation, finishLocation);
         });
 
         // загрузка поездок
