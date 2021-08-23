@@ -21,7 +21,7 @@ namespace WebAPICore5_0W.Controllers
         }
 
         // GET: api/Trips
-        [HttpGet]
+        //[HttpGet]
         public async Task<IEnumerable<Trip>> GetTrips(string startLocation, string finishLocation)
         {
             IEnumerable<Trip> TripsList = await _context.Trips.ToListAsync();
@@ -31,10 +31,12 @@ namespace WebAPICore5_0W.Controllers
                 TripsList = await _context.Trips.Where(p => p.StartLocation.Contains(startLocation))
                                                 .Where(p => p.FinishLocation.Contains(finishLocation))
                                                 .ToListAsync();
-            }else if (!String.IsNullOrEmpty(startLocation))
+            }
+            else if (!String.IsNullOrEmpty(startLocation))
             {
                 TripsList = await _context.Trips.Where(p => p.StartLocation.Contains(startLocation)).ToListAsync();
-            }else if(!String.IsNullOrEmpty(finishLocation))
+            }
+            else if (!String.IsNullOrEmpty(finishLocation))
             {
                 TripsList = await _context.Trips.Where(p => p.FinishLocation.Contains(finishLocation)).ToListAsync();
             }
@@ -100,7 +102,7 @@ namespace WebAPICore5_0W.Controllers
 
         // DELETE: api/Trips/5
         [HttpDelete("{id}")]
-                    
+
         public async Task<ActionResult<Trip>> DeleteTrip(int id)
         //public async Task<IActionResult> DeleteTrip(int id)
         {

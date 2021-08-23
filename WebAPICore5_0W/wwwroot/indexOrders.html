@@ -5,155 +5,220 @@
     <meta name="viewport" content="width=device-width" />
     <title>Список забронированных поездок</title>
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.0/css/bootstrap.min.css" rel="stylesheet" />
+    <link type="text/css" rel="stylesheet" href="SiteStyleSheet.css" />
 </head>
 <body>
     <a href="indexTrips.html">Список поездок</a>
     <form name="orderForm">
         <input type="hidden" name="id" value="0" />
+        <input type="hidden" name="idTrip" value="0" />
         <div class="form-group col-md-5">
-            <label for="name">Имя:</label>
-            <input class="form-control" name="name" />
+            <label for="fio">ФИО:</label>
+            <input class="form-control" name="fio" />
         </div>
         <div class="form-group col-md-5">
-            <label for="age">Возраст:</label>
-            <input class="form-control" name="age" type="number" />
+            <label for="ordered">Вронирование:</label>
+            <input class="form-control" id="ordered" type="checkbox" />
         </div>
         <div class="panel-body">
             <button type="submit" id="submit" class="btn btn-primary">Сохранить</button>
-            <button type="button" a id="resetbutton" class="btn btn-primary">Сбросить</button>
+            <button type="button" id="resetbutton" class="btn btn-primary">Сбросить</button>
+        </div>
+    </form>
+    <form name="filterForm">
+        <div class="lines">
+            <div class="panel-body">
+                <div class="form-group form-inline">
+                    <label for="fio">ФИО: </label>
+                    <input class="form-control" name="fio" />
+                    <input type="submit" value="Применить фильтр" class="btn btn-outline-dark" />
+                </div>
+            </div>
         </div>
     </form>
     <h2>Список забронированных поездок</h2>
-    <table class="table table-condensed table-striped  col-md-6">
-        <thead><tr><th>Id</th><th>Имя</th><th>возраст</th><th></th></tr></thead>
-        <tbody>
+    <table class="table table-condensed table-sordered  col-md-6">
+        <thead><tr><th>Id брони</th><th>Id поездки</th><th>ФИО</th><th>Стартовая локация</th><th>Финишная локация</th><th>Цена</th><th></th></tr></thead>
+        <tbody id="tableOrderstbody">
         </tbody>
     </table>
 
     <script>
-        // Получение всех пользователей
-        async function GetOrders() {
+        // Получение всех поездок
+        async function GetOrders(fio = "") {
             // отправляет запрос и получаем ответ
-            const response = await fetch("/api/users", {
+            const response = await fetch("/api/orders?fio=" + fio, {
                 method: "GET",
                 headers: { "Accept": "application/json" }
             });
             // если запрос прошел нормально
             if (response.ok === true) {
                 // получаем данные
-                const users = await response.json();
+                const orders = await response.json();
                 let rows = document.querySelector("tbody");
-                users.forEach(user => {
-                    // добавляем полученные элементы в таблицу
-                    rows.append(row(user));
+                orders.forEach(async order => {
+                    // отправляет запрос и получаем ответ
+                    const responsetrip = await fetch("/api/trips/" + order.idTrip, {
+                        method: "GET",
+                        headers: { "Accept": "application/json" }
+                    });
+                    // если запрос прошел нормально
+                    if (responsetrip.ok === true) {
+                        const trip = await responsetrip.json();
+                        // добавляем полученные элементы в таблицу
+                        rows.append(row(order, trip));
+                    }
                 });
             }
         }
         // Получение одного пользователя
         async function GetOrder(id) {
-            const response = await fetch("/api/users/" + id, {
+            const response = await fetch("/api/orders/" + id, {
                 method: "GET",
                 headers: { "Accept": "application/json" }
             });
+           
             if (response.ok === true) {
-                const user = await response.json();
+                const order = await response.json();
                 const form = document.forms["orderForm"];
-                form.elements["id"].value = user.id;
-                form.elements["name"].value = user.name;
-                form.elements["age"].value = user.age;
-            }
-        }
-        // Добавление пользователя
-        async function CreateOrder(userName, userAge) {
+                form.elements["id"].value = order.id;
+                form.elements["idTrip"].value = order.idTrip;
+                form.elements["fio"].value = order.fio;
 
-            const response = await fetch("api/users", {
-                method: "POST",
-                headers: { "Accept": "application/json", "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    name: userName,
-                    age: parseInt(userAge, 10)
-                })
-            });
-            if (response.ok === true) {
-                const user = await response.json();
-                reset();
-                document.querySelector("tbody").append(row(user));
+                const responsetrip = await fetch("/api/trips/" + order.idTrip, {
+                    method: "GET",
+                    headers: { "Accept": "application/json" }
+                });
+                // если запрос прошел нормально
+                if (responsetrip.ok === true) {
+                    const trip = await responsetrip.json();
+                    form.elements["ordered"].checked = trip.ordered;
+                }
             }
         }
-        // Изменение пользователя
-        async function EditOrder(userId, userName, userAge) {
-            const response = await fetch("api/users/" + userId, {
+        // Изменение поездки
+        async function EditOrder(orderId, idTrip, fio, ordered) {
+            
+            const response = await fetch("api/orders/" + orderId, {
                 method: "PUT",
                 headers: { "Accept": "application/json", "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    id: parseInt(userId, 10),
-                    name: userName,
-                    age: parseInt(userAge, 10)
+                    Id: orderId,
+                    Fio: fio,
+                    IdTrip: idTrip
                 })
             });
+            
             if (response.ok === true) {
-                const user = await response.json();
+                const order = await response.json();
                 reset();
-                document.querySelector("tr[data-rowid='" + user.id + "']").replaceWith(row(user));
+                const responsetrip = await fetch("/api/trips/" + order.idTrip, {
+                    method: "GET",
+                    headers: { "Accept": "application/json" }
+                });
+                // если запрос прошел нормально
+                if (responsetrip.ok === true) {
+                    const trip = await responsetrip.json();
+                    if (ordered == true) {
+                        //изменение полученного элемента в таблице
+                        document.querySelector("tr[data-rowid='" + order.id + "']").replaceWith(row(order, trip));
+                    } else {
+                        await DeleteBookingTrip(order, trip, false);
+                    }
+                }
             }
         }
-        // Удаление пользователя
+        // Удаление поездки
         async function DeleteOrder(id) {
-            const response = await fetch("/api/users/" + id, {
+
+            const response = await fetch("/api/orders/" + id, {
                 method: "DELETE",
                 headers: { "Accept": "application/json" }
             });
             if (response.ok === true) {
-                const user = await response.json();
-                document.querySelector("tr[data-rowid='" + user.id + "']").remove();
+                const order = await response.json();
+                document.querySelector("tr[data-rowid='" + order.id + "']").remove();
             }
         }
 
+        //Отмена бронирования поездки
+        async function DeleteBookingTrip(order, trip, ordered) {
+            const responsetripput = await fetch("api/trips/" + trip.idTrip, {
+                method: "PUT",
+                headers: { "Accept": "application/json", "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    IdTrip: trip.idTrip,
+                    StartLocation: trip.startLocation,
+                    FinishLocation: trip.finishLocation,
+                    Price: parseInt(trip.price, 10),
+                    Ordered: ordered
+                })
+            });
+            if (responsetripput.ok === true) {
+                DeleteOrder(order.id);
+                alert("Отмена бронирования");
+            }
+        }
+        
         // сброс формы
         function reset() {
             const form = document.forms["orderForm"];
             form.reset();
-            form.elements["id"].value = -1;
-        }
+            form.elements["id"].value = 0;
+            form.elements["idTrip"].value = 0;
+            form.elements["fio"].value = "";
+         }
         // создание строки для таблицы
-        function row(user) {
+        function row(order, trip) {
 
             const tr = document.createElement("tr");
-            tr.setAttribute("data-rowid", user.id);
+            tr.setAttribute("data-rowid", order.id);
 
             const idTd = document.createElement("td");
-            idTd.append(user.id);
+            idTd.append(order.id);
             tr.append(idTd);
 
-            const nameTd = document.createElement("td");
-            nameTd.append(user.name);
-            tr.append(nameTd);
+            const IdTripTd = document.createElement("td");
+            IdTripTd.append(order.idTrip);
+            tr.append(IdTripTd);
 
-            const ageTd = document.createElement("td");
-            ageTd.append(user.age);
-            tr.append(ageTd);
+            const FioTd = document.createElement("td");
+            FioTd.append(order.fio);
+            tr.append(FioTd);
+
+            const StartLocationTd = document.createElement("td");
+            StartLocationTd.append(trip.startLocation);
+            tr.append(StartLocationTd);
+
+            const FinishLocationTd = document.createElement("td");
+            FinishLocationTd.append(trip.finishLocation);
+            tr.append(FinishLocationTd);
+
+            const PriceTd = document.createElement("td");
+            PriceTd.append(trip.price);
+            tr.append(PriceTd);
 
             const linksTd = document.createElement("td");
 
             const editLink = document.createElement("a");
-            editLink.setAttribute("data-id", user.id);
+            editLink.setAttribute("data-id", order.idorder);
             editLink.setAttribute("style", "cursor:pointer;padding:15px;");
             editLink.append("Изменить");
             editLink.addEventListener("click", e => {
-
                 e.preventDefault();
-                GetOrder(user.id);
+                document.getElementById('submit').disabled = false;
+                document.getElementById('resetbutton').disabled = false;
+                GetOrder(order.id);
             });
             linksTd.append(editLink);
-
+            
             const removeLink = document.createElement("a");
-            removeLink.setAttribute("data-id", user.id);
+            removeLink.setAttribute("data-id", order.idorder);
             removeLink.setAttribute("style", "cursor:pointer;padding:15px;");
             removeLink.append("Удалить");
-            removeLink.addEventListener("click", e => {
-
+            removeLink.addEventListener("click", async (e) => {
                 e.preventDefault();
-                DeleteOrder(user.id);
+                await DeleteBookingTrip(order, trip, false);
             });
 
             linksTd.append(removeLink);
@@ -161,33 +226,45 @@
 
             return tr;
         }
+
         // сброс значений формы
-        //document.getElementById("resetbutton").click(function (e) {
-        //e.preventDefault();
-        //reset();
-        //})
         resetbutton.onclick = function (e) {
             e.preventDefault();
             reset();
+            document.getElementById('submit').disabled = true;
+            document.getElementById('resetbutton').disabled = true;
         }
 
         // отправка формы
         document.forms["orderForm"].addEventListener("submit", e => {
             e.preventDefault();
-            const form = document.forms["userForm"];
+            const form = document.forms["orderForm"];
             const id = form.elements["id"].value;
-            const name = form.elements["name"].value;
-            const age = form.elements["age"].value;
-            if (id == 0)
-                CreateOrder(name, age);
-            else {
-                if (id != -1) EditOrder(id, name, age);
-            }
+            const fio = form.elements["fio"].value;
+            const idTrip = form.elements["idTrip"].value;
+            const ordered = form.elements["ordered"].checked;
+            
+            if (id != -1) EditOrder(id, idTrip, fio, ordered);
+            document.getElementById('submit').disabled = true;
+            document.getElementById('resetbutton').disabled = true;
         });
 
-        // загрузка пользователей
-        GetOrders();
+        
+        // отправка формы
+        document.forms["filterForm"].addEventListener("submit", e => {
+            e.preventDefault();
+            const form = document.forms["filterForm"];
+            const fio = form.elements["fio"].value;
+            document.getElementById("tableOrderstbody").innerHTML = "";
+            GetOrders(fio);
+        });
 
+        // загрузка поездок
+        GetOrders();
+        window.onload = function () {
+            document.getElementById('submit').disabled = true;
+            document.getElementById('resetbutton').disabled = true;
+        };
     </script>
 </body>
 </html>

@@ -20,14 +20,14 @@ namespace WebAPICore5_0W.Models
         public virtual DbSet<Order> Orders { get; set; }
         public virtual DbSet<Trip> Trips { get; set; }
 
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        {
-            if (!optionsBuilder.IsConfigured)
-            {
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see http://go.microsoft.com/fwlink/?LinkId=723263.
-                optionsBuilder.UseSqlServer("Server=.;Database=OrdersTripsAppDB;Trusted_Connection=True;");
-            }
-        }
+//        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+//        {
+//            if (!optionsBuilder.IsConfigured)
+//            {
+//#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see http://go.microsoft.com/fwlink/?LinkId=723263.
+//                optionsBuilder.UseSqlServer("Server=.;Database=OrdersTripsAppDB;Trusted_Connection=True;");
+//            }
+//        }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -46,13 +46,13 @@ namespace WebAPICore5_0W.Models
                 entity.HasOne(d => d.IdTripNavigation)
                     .WithMany(p => p.Orders)
                     .HasForeignKey(d => d.IdTrip)
+                    .OnDelete(DeleteBehavior.Cascade)
                     .HasConstraintName("FK_Orders_Trips");
             });
 
             modelBuilder.Entity<Trip>(entity =>
             {
-                entity.HasKey(e => e.IdTrip)
-                    .HasName("PK_Trips1");
+                entity.HasKey(e => e.IdTrip);
 
                 entity.Property(e => e.IdTrip).HasColumnName("idTrip");
 

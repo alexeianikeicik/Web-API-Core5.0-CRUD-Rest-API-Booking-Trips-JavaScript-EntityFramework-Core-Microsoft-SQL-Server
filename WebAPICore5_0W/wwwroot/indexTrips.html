@@ -24,7 +24,7 @@
             <input class="form-control" name="price" type="number" />
         </div>
         <div class="form-group col-md-5">
-            <label for="ordered">Статус бронирования:</label>
+            <label for="ordered">Вронирование:</label>
             <input class="form-control" id="ordered" type="checkbox" />
         </div>
         <div class="panel-body">
@@ -47,7 +47,7 @@
     </form>
     <h2>Список поездок</h2>
     <table class="table table-condensed table-striped  col-md-6">
-        <thead><tr><th>Id</th><th>Стартовая локация</th><th>Финишная локация</th><th>Цена</th><th></th></tr></thead>
+        <thead><tr><th>Id поездки</th><th>Стартовая локация</th><th>Финишная локация</th><th>Цена</th><th></th></tr></thead>
         <tbody id="tableTripstbody">
         </tbody>
     </table>
@@ -67,7 +67,9 @@
                 let rows = document.querySelector("tbody");
                 trips.forEach(trip => {
                     // добавляем полученные элементы в таблицу
+                    if (trip.ordered == false) {
                     rows.append(row(trip));
+                    }
                 });
             }
         }
@@ -104,7 +106,22 @@
             if (response.ok === true) {
                 const trip = await response.json();
                 reset();
-                document.querySelector("tbody").append(row(trip));
+                if (trip.ordered == false) {
+                    document.querySelector("tbody").append(row(trip));
+                } else {
+                    const responseOrder = await fetch("api/orders", {
+                        method: "POST",
+                        headers: { "Accept": "application/json", "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            Id: 0,
+                            Fio: "",
+                            IdTrip: trip.idTrip
+                        })
+                    });
+                    if (responseOrder.ok === true) {
+                        alert("Поездка забронирована");
+                    }
+                }
             }
         }
         // Изменение поездки
@@ -126,7 +143,24 @@
             if (response.ok === true) {
                 const trip = await response.json();
                 reset();
-                document.querySelector("tr[data-rowid='" + trip.idTrip + "']").replaceWith(row(trip));
+                
+                if (trip.ordered == false) {
+                    document.querySelector("tr[data-rowid='" + trip.idTrip + "']").replaceWith(row(trip));
+                } else {
+                    const responseOrder = await fetch("api/orders", {
+                        method: "POST",
+                        headers: { "Accept": "application/json", "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            Id: 0,
+                            Fio: "",
+                            IdTrip: trip.idTrip
+                        })
+                    });
+                    if (responseOrder.ok === true) {
+                        document.querySelector("tr[data-rowid='" + trip.idTrip + "']").remove();
+                        alert("Поездка забронирована");
+                    }
+                }
             }
         }
         // Удаление поездки
@@ -151,51 +185,51 @@
         // создание строки для таблицы
         function row(trip) {
 
-            const tr = document.createElement("tr");
-            tr.setAttribute("data-rowid", trip.idTrip);
+                const tr = document.createElement("tr");
+                tr.setAttribute("data-rowid", trip.idTrip);
 
-            const idTd = document.createElement("td");
-            idTd.append(trip.idTrip);
-            tr.append(idTd);
+                const idTd = document.createElement("td");
+                idTd.append(trip.idTrip);
+                tr.append(idTd);
 
-            const StartLocationTd = document.createElement("td");
-            StartLocationTd.append(trip.startLocation);
-            tr.append(StartLocationTd);
+                const StartLocationTd = document.createElement("td");
+                StartLocationTd.append(trip.startLocation);
+                tr.append(StartLocationTd);
 
-            const FinishLocationTd = document.createElement("td");
-            FinishLocationTd.append(trip.finishLocation);
-            tr.append(FinishLocationTd);
+                const FinishLocationTd = document.createElement("td");
+                FinishLocationTd.append(trip.finishLocation);
+                tr.append(FinishLocationTd);
 
-            const PriceTd = document.createElement("td");
-            PriceTd.append(trip.price);
-            tr.append(PriceTd);
+                const PriceTd = document.createElement("td");
+                PriceTd.append(trip.price);
+                tr.append(PriceTd);
 
-            const linksTd = document.createElement("td");
+                const linksTd = document.createElement("td");
 
-            const editLink = document.createElement("a");
-            editLink.setAttribute("data-id", trip.idTrip);
-            editLink.setAttribute("style", "cursor:pointer;padding:15px;");
-            editLink.append("Изменить");
-            editLink.addEventListener("click", e => {
-                e.preventDefault();
-                GetTrip(trip.idTrip);
-            });
-            linksTd.append(editLink);
+                const editLink = document.createElement("a");
+                editLink.setAttribute("data-id", trip.idTrip);
+                editLink.setAttribute("style", "cursor:pointer;padding:15px;");
+                editLink.append("Изменить");
+                editLink.addEventListener("click", e => {
+                    e.preventDefault();
+                    GetTrip(trip.idTrip);
+                });
+                linksTd.append(editLink);
 
-            const removeLink = document.createElement("a");
-            removeLink.setAttribute("data-id", trip.idTrip);
-            removeLink.setAttribute("style", "cursor:pointer;padding:15px;");
-            removeLink.append("Удалить");
-            removeLink.addEventListener("click", e => {
+                const removeLink = document.createElement("a");
+                removeLink.setAttribute("data-id", trip.idTrip);
+                removeLink.setAttribute("style", "cursor:pointer;padding:15px;");
+                removeLink.append("Удалить");
+                removeLink.addEventListener("click", e => {
 
-                e.preventDefault();
-                DeleteTrip(trip.idTrip);
-            });
+                    e.preventDefault();
+                    DeleteTrip(trip.idTrip);
+                });
 
-            linksTd.append(removeLink);
-            tr.appendChild(linksTd);
+                linksTd.append(removeLink);
+                tr.appendChild(linksTd);
 
-            return tr;
+                return tr;
         }
 
         // сброс значений формы
