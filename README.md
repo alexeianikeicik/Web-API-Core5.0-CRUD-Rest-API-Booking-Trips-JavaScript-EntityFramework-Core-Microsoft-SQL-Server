@@ -7,3 +7,19 @@ filters. On the trips page, you can specify a start and finish filter for sortin
 Приложение представляет из себя страницу учёта поездок (List of trips) и страницу забронированных поездок (List of booked trips). Предусмотрена 
 возможность создания, редактирования и удаления поездок и их бронирования. Можно забронировать поездку и отменить бронирование. В приложении есть
 возможность сортировки таблицы по определённым фильтрам. На странице поездок можно указать стартовый и финишный фильтр для сортировки таблицы. На странице забронированных поездок можно указать полное имя для сортировки таблицы. 
+
+List of trips:
+Список поездок:
+![1](https://user-images.githubusercontent.com/85065601/173532524-2804f65c-65d3-4a59-91ec-b85ea1884cbd.jpg)
+
+Applying a display filter to a list of trips:
+Применение фильтра отображения к списку поездок:
+![1_1](https://user-images.githubusercontent.com/85065601/173534546-0ed4631f-9de5-4b6c-82f6-3b843b4888ef.jpg)
+
+Booking a trip:
+Бронирование поездки:
+![2](https://user-images.githubusercontent.com/85065601/173532984-54a3f30e-99f3-490e-a0df-7842c6588030.jpg)
+
+List of booked trips:
+Список забронированных поездок:
+![3](https://user-images.githubusercontent.com/85065601/173533699-9056140d-4b47-410d-9ed1-4539120b31c1.jpg)
